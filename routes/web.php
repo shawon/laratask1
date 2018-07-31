@@ -12,6 +12,15 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::post('/task', 'taskControl@insertTask')->middleware('auth');
+
+Route::delete('/task/{id}', 'taskControl@deleteTask',['$id'])->middleware('auth');
+
+Route::get('/task/{id}', 'taskControl@singleTask',['$id'])->middleware('auth');
+
+Route::put('/task/{id}', 'taskControl@updateTask')->middleware('auth');
+
+
 Route::get('/', function () {
     $tasks = Task::orderBy('created_at', 'asc')->get();
 
@@ -20,31 +29,6 @@ Route::get('/', function () {
     ]);
 })->middleware('auth');
 
-Route::post('/task', function (Request $request) {
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return redirect('/')
-            ->withInput()
-            ->withErrors($validator);
-    }
-
-    $task = new Task;
-    $task->name = $request->name;
-    $task->assigned_by = $request->assigned_by;
-    $task->assigned_to = $request->assigned_to;
-    $task->tags = $request->tags;
-    $task->save();
-
-    return redirect('/');
-})->middleware('auth');
-
-Route::delete('/task/{id}', function ($id) {
-    Task::findOrFail($id)->delete();
-    return redirect('/');
-})->middleware('auth');
 
 Auth::routes();
 
@@ -55,7 +39,4 @@ Route::get('/logout', function () {
     return redirect('/');
 });
 
-Route::get('/fetchtask', function () {
-    $tasks = DB::table('tasks')->get();
-    return $json = json_encode($tasks);
-});
+Route::get('/fetchtask', 'taskControl@fetchTask')->middleware('auth');
